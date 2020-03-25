@@ -55,3 +55,20 @@ class ProjectViewSetTestCase(ReadOnlyViewSetTestsMixin, APITestCase):
 ```
 
 Happy API testing :)
+
+About schema checks
+-------------------
+
+Rest-Framework-Smoke uses `jsonschema` to validate API response format.
+When we check format, we should pay attention to:
+* no unexpected properties are found (is so, they are not validated by schema)
+* there no missing properties (missing properties are not validated)
+* arrays are not empty (because there is nothing to check in empty arrays)
+* all values are not null (because null values mostly are null by default, and
+    other type variants will never appear in schema validation code)
+
+So there are two helpers in `rest_framework_smoke.tests.schemas` to enforce 
+these constraints (and they are used internally for format tests):
+* `get_object_schema`
+* `get_array_schema`
+
