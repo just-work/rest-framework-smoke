@@ -63,7 +63,7 @@ setup(
     version=get_version() or 'dev',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    packages=['admin_smoke'],
+    packages=['rest_framework_smoke.tests'],
     url='https://github.com/just-work/rest-framework-smoke',
     license='MIT',
     author='Sergey Tikhonov',
