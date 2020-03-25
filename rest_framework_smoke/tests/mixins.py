@@ -189,4 +189,3 @@ class DetailTestsMixin:
 class ReadOnlyViewSetTestsMixin(ListTestsMixin, DetailTestsMixin,
                                 APIHelpersMixin):
     """ Tests for readonly API ViewSets: list + retrieve."""
-    pass
