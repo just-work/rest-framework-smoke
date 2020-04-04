@@ -10,7 +10,7 @@ from rest_framework.test import APITestCase
 
 from rest_framework_smoke.tests import schemas
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     BaseClass = APITestCase
 else:
     BaseClass = object
@@ -159,7 +159,7 @@ class APIHelpersMixin(BaseClass):
         """ Checks response schema."""
         try:
             jsonschema.validate(obj, schema)
-        except jsonschema.ValidationError as e:
+        except jsonschema.ValidationError as e:  # pragma: no cover
             self.fail(e.message)
 
     def assert_object_list(self, objects: List[models.Model],
@@ -174,7 +174,13 @@ class APIHelpersMixin(BaseClass):
         self.assertListEqual(ids, expected)
 
 
-class ListTestsMixin(APIHelpersMixin):
+if TYPE_CHECKING:  # pragma: no cover
+    MixinClass = APIHelpersMixin
+else:
+    MixinClass = object
+
+
+class ListTestsMixin(MixinClass):
 
     def test_list_format(self) -> None:
         """ Checks list response format."""
@@ -182,7 +188,7 @@ class ListTestsMixin(APIHelpersMixin):
         self.assert_json_schema(r.json(), self.get_list_schema())
 
 
-class DetailTestsMixin(APIHelpersMixin):
+class DetailTestsMixin(MixinClass):
 
     def test_detail_format(self) -> None:
         """ Checks detail response format."""
