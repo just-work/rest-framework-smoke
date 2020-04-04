@@ -7,7 +7,7 @@ PAGINATE_SCHEMA = {
 }
 
 
-def get_array_schema(schema):
+def get_array_schema(schema: dict) -> dict:
     """
     Returns more strict schema for an array of object with given schema.
 
@@ -23,7 +23,7 @@ def get_array_schema(schema):
     }
 
 
-def get_object_schema(schema):
+def get_object_schema(schema: dict) -> dict:
     """
     Returns more strict schema based on passed object schema.
 
