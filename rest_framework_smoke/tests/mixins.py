@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any)
 from urllib.parse import urlencode
 
 import jsonschema
@@ -10,15 +10,18 @@ from rest_framework.test import APITestCase
 
 from rest_framework_smoke.tests import schemas
 
-APIHelpersDerived = Union["APIHelpersMixin", APITestCase]
+if TYPE_CHECKING:  # pragma: no cover
+    MixinTarget = APITestCase
+else:
+    MixinTarget = object
 
 
-class APIHelpersMixin:
+class APIHelpersMixin(MixinTarget):
     # basename for `SimpleRouter.register()` call for tested viewset
     basename: str
 
     # viewset application label
-    app_label: str = None
+    app_label: Optional[str] = None
 
     # object schema in list response
     schema: dict = {}
@@ -37,7 +40,7 @@ class APIHelpersMixin:
     details_url_kwarg = details_url_field = 'pk'
 
     # attribute holding and object returned by tested viewset
-    object_name: str = None
+    object_name: Optional[str] = None
 
     # primary key field name
     pk_field = 'id'
@@ -46,15 +49,16 @@ class APIHelpersMixin:
     url_name_format = '{basename}-{suffix}'
 
     @property
-    def obj(self):
-        return getattr(self, self.object_name)
+    def obj(self) -> models.Model:
+        return getattr(self, cast(str, self.object_name))
 
     @property
-    def object_list(self):
+    def object_list(self) -> List[models.Model]:
         return [self.obj]
 
-    def url(self, suffix, *, version: Optional[str] = None,
-            query: Union[None, dict, MultiValueDict] = None, **kwargs) -> str:
+    def url(self, suffix: str, *, version: Optional[str] = None,
+            query: Union[None, dict, MultiValueDict] = None,
+            **kwargs: Any) -> str:
         """
         Constructs an url for viewset
 
@@ -86,9 +90,9 @@ class APIHelpersMixin:
             url += '?%s' % urlencode(query)
         return url
 
-    def perform_request(self: APIHelpersDerived, suffix: str, detail: bool, *,
+    def perform_request(self, suffix: str, detail: bool, *,
                         headers: Optional[dict] = None, status: int = 200,
-                        **kwargs) -> Response:
+                        **kwargs: Any) -> Response:
         """
         Requests viewset endpoint.
 
@@ -106,8 +110,8 @@ class APIHelpersMixin:
         self.assertEqual(r.status_code, status)
         return r
 
-    def get_list(self: APIHelpersDerived, headers=None, status=200,
-                 **kwargs) -> List[dict]:
+    def get_list(self, headers: Optional[dict] = None, status: int = 200,
+                 **kwargs: Any) -> List[dict]:
         """
         Returns list of object retrieved through api.
 
@@ -121,8 +125,8 @@ class APIHelpersMixin:
         else:
             return data
 
-    def get_detail(self: APIHelpersDerived, *, suffix='detail', headers=None,
-                   status=200, **kwargs) -> dict:
+    def get_detail(self, *, suffix: str = 'detail', status: int = 200,
+                   headers: Optional[dict] = None, **kwargs: Any) -> dict:
         """ Returns object details retrieved through api."""
         r = self.perform_request(suffix, True, headers=headers, status=status,
                                  **kwargs)
@@ -137,7 +141,7 @@ class APIHelpersMixin:
         """ Returns object schema for details response."""
         return schemas.get_object_schema(self.details_schema)
 
-    def get_list_schema(self, min_items=1) -> dict:
+    def get_list_schema(self, min_items: int = 1) -> dict:
         """ Returns list response schema with pagination data
         """
         result_list_schema = {
@@ -151,15 +155,15 @@ class APIHelpersMixin:
         schema.update({"results": result_list_schema})
         return schemas.get_object_schema(schema)
 
-    def assert_json_schema(self: APIHelpersDerived, obj: dict, schema: dict):
+    def assert_json_schema(self, obj: dict, schema: dict) -> None:
         """ Checks response schema."""
         try:
             jsonschema.validate(obj, schema)
-        except jsonschema.ValidationError as e:
+        except jsonschema.ValidationError as e:  # pragma: no cover
             self.fail(e.message)
 
-    def assert_object_list(self: APIHelpersDerived, objects: List[models.Model],
-                           **kwargs):
+    def assert_object_list(self, objects: List[models.Model],
+                           **kwargs: Any) -> None:
         """
         Requests object list and checks primary key lists with expected object
         list.
@@ -170,17 +174,23 @@ class APIHelpersMixin:
         self.assertListEqual(ids, expected)
 
 
-class ListTestsMixin:
+if TYPE_CHECKING:  # pragma: no cover
+    APIHelpersTarget = APIHelpersMixin
+else:
+    APIHelpersTarget = object
 
-    def test_list_format(self: APIHelpersDerived):
+
+class ListTestsMixin(APIHelpersTarget):
+
+    def test_list_format(self) -> None:
         """ Checks list response format."""
         r = self.perform_request('list', False)
         self.assert_json_schema(r.json(), self.get_list_schema())
 
 
-class DetailTestsMixin:
+class DetailTestsMixin(APIHelpersTarget):
 
-    def test_detail_format(self: APIHelpersDerived):
+    def test_detail_format(self) -> None:
         """ Checks detail response format."""
         r = self.perform_request('detail', True)
         self.assert_json_schema(r.json(), self.get_details_schema())
