@@ -11,12 +11,12 @@ from rest_framework.test import APITestCase
 from rest_framework_smoke.tests import schemas
 
 if TYPE_CHECKING:  # pragma: no cover
-    BaseClass = APITestCase
+    MixinTarget = APITestCase
 else:
-    BaseClass = object
+    MixinTarget = object
 
 
-class APIHelpersMixin(BaseClass):
+class APIHelpersMixin(MixinTarget):
     # basename for `SimpleRouter.register()` call for tested viewset
     basename: str
 
@@ -175,12 +175,12 @@ class APIHelpersMixin(BaseClass):
 
 
 if TYPE_CHECKING:  # pragma: no cover
-    MixinClass = APIHelpersMixin
+    APIHelpersTarget = APIHelpersMixin
 else:
-    MixinClass = object
+    APIHelpersTarget = object
 
 
-class ListTestsMixin(MixinClass):
+class ListTestsMixin(APIHelpersTarget):
 
     def test_list_format(self) -> None:
         """ Checks list response format."""
@@ -188,7 +188,7 @@ class ListTestsMixin(MixinClass):
         self.assert_json_schema(r.json(), self.get_list_schema())
 
 
-class DetailTestsMixin(MixinClass):
+class DetailTestsMixin(APIHelpersTarget):
 
     def test_detail_format(self) -> None:
         """ Checks detail response format."""
