@@ -29,4 +29,4 @@ jobs:
         python --version
     - name: Run Tests
       run: |
-        python testproject/manage.py test testproject/
+        python manage.py test testproject/
