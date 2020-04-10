@@ -23,7 +23,7 @@ jobs:
         echo "Python ${{ matrix.python-version }} -> Django ${{ matrix.django-version }}"
         sed -i '/Django==.*/d' ./requires.txt # delete django dependency
         pip install -r requires.txt
-        python -m pip install "Django~=${{ matrix.django-version }}.*"
+        python -m pip install "Django~=${{ matrix.django-version }}.0"
         pip install -q -e .
         echo "Django: `django-admin --version`"
         python --version
