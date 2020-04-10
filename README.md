@@ -3,7 +3,7 @@ Rest-Framework-Smoke
 
 Smoke tests for API built with Django Rest Framework.
 
-[![Build Status](https://travis-ci.org/just-work/rest-framework-smoke.svg?branch=master)](https://travis-ci.org/just-work/rest-framework-smoke)
+![build](https://github.com/just-work/rest-framework-smoke/workflows/build/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/just-work/rest-framework-smoke/branch/master/graph/badge.svg)](https://codecov.io/gh/just-work/rest-framework-smoke)
 [![PyPI version](https://badge.fury.io/py/rest-framework-smoke.svg)](https://badge.fury.io/py/rest-framework-smoke)
 

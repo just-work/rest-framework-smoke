@@ -59,7 +59,7 @@ def get_version():
 
 
 setup(
-    name='rest-framework-smoke',
+    name=package_name,
     version=get_version() or 'dev',
     long_description=long_description,
     long_description_content_type='text/markdown',
