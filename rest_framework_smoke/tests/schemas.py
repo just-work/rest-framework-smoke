@@ -3,7 +3,7 @@ from copy import deepcopy
 PAGINATE_SCHEMA = {
     "next": {"type": ["string", "null"]},
     "previous": {"type": ["string", "null"]},
-    "count": {"type": "integer", "minimum": 0},
+    "count": {"type": ["integer"], "minimum": 0},
 }
 
 

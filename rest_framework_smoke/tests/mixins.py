@@ -145,7 +145,7 @@ class APIHelpersMixin(MixinTarget):
         """ Returns list response schema with pagination data
         """
         result_list_schema = {
-            "type": "array",
+            "type": ["array"],
             "items": self.get_schema(),
             "minItems": min_items}
         if not self.pagination_schema:
