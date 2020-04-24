@@ -105,7 +105,7 @@ class APIHelpersMixin(MixinTarget):
         headers = headers or {}
         if detail and not kwargs:
             value = getattr(self.obj, self.details_url_field)
-            kwargs = {self.details_url_kwarg: value}
+            kwargs.setdefault(self.details_url_kwarg, value)
         r = self.client.get(self.url(suffix, **kwargs), **headers)
         self.assertEqual(r.status_code, status)
         return r
@@ -184,7 +184,8 @@ class ListTestsMixin(APIHelpersTarget):
 
     def test_list_format(self) -> None:
         """ Checks list response format."""
-        r = self.perform_request('list', False)
+        r = self.perform_request('list', False,
+                                 query={'limit': 1, 'offset': 1})
         self.assert_json_schema(r.json(), self.get_list_schema())
 
 
