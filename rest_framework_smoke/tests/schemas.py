@@ -40,8 +40,12 @@ def get_object_schema(schema: dict) -> dict:
         if "type" not in attribute:
             # don't know what it is
             continue
-        # remove null because of high probability of type check skip
-        attribute["type"] = [t for t in attribute["type"] if t != "null"]
+        if isinstance(attribute["type"], str):
+            attribute["type"] = [attribute["type"]]
+        elif isinstance(attribute["type"], (list, tuple)):
+            # remove null because of high probability of type check skip
+            attribute["type"] = [t for t in attribute["type"] if t != "null"]
+
         if attribute["type"] == ["object"]:
             # ensure that object schema is enforced
             schema[name] = get_object_schema(attribute["properties"])
