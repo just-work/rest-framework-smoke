@@ -8,7 +8,6 @@ class ProjectViewSetTestCase(ReadOnlyViewSetTestsMixin, APITestCase):
     object_name = 'project'
     basename = 'projects'
     schema = details_schema = schemas.PROJECT_SCHEMA
-    pagination_schema = None
 
     @classmethod
     def setUpTestData(cls):
