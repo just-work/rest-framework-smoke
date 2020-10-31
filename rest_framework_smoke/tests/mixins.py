@@ -106,7 +106,8 @@ class APIHelpersMixin(MixinTarget):
         if detail and not kwargs:
             value = getattr(self.obj, self.details_url_field)
             kwargs = {self.details_url_kwarg: value}
-        r = self.client.get(self.url(suffix, **kwargs), **headers)
+        url = self.url(suffix, **kwargs)
+        r = cast(Response, self.client.get(url, **headers))
         self.assertEqual(r.status_code, status)
         return r
 
