@@ -29,4 +29,5 @@ jobs:
         python --version
     - name: Run Tests
       run: |
+        python manage.py check
         python manage.py test
