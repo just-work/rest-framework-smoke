@@ -14,11 +14,12 @@ class CommonAPICheckList(CheckListTarget):
     A collection of tests for CRUDL API
     """
 
+    @skip("Implement me")
     def test_authorization(self):
         """
         checks whether API performs client authorization
         """
-        self.skipTest("Implement me")
+        raise NotImplementedError()
 
 
 class ReadAPICheckList(CommonAPICheckList):
