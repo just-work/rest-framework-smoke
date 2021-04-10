@@ -294,9 +294,9 @@ class APIHelpersMixin(MixinTarget):
         """
         return schemas.get_object_schema(self.schema)
 
-    def get_details_schema(self) -> dict:
+    def get_details_schema(self, attr='details_schema') -> dict:
         """ Returns object schema for details response."""
-        return schemas.get_object_schema(self.details_schema)
+        return schemas.get_object_schema(getattr(self, attr))
 
     def get_list_schema(self, min_items: int = 1) -> dict:
         """ Returns list response schema with pagination data
