@@ -48,7 +48,7 @@ class APIHelpersMixin(MixinTarget):
     # object list key for paginated response
     page_result_key = 'results'
 
-    # url path data name and corresponding model attribute name for
+    # url path kwargs name and corresponding model attribute name for
     # constructing detail url for object
     details_url_kwarg = details_url_field = 'pk'
 
@@ -88,7 +88,7 @@ class APIHelpersMixin(MixinTarget):
         :param suffix: last part of viewset url (list/detail or action name)
         :param version: API version
         :param query: query parameters for a link
-        :param kwargs: url data for reversing
+        :param kwargs: url kwargs for reversing
         """
         name = self.url_name_format.format(
             version=version,
