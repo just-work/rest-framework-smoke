@@ -120,10 +120,12 @@ class APIHelpersMixin(MixinTarget):
         return response.json()
 
     @staticmethod
-    def clone_object(obj: models.Model) -> models.Model:
+    def clone_object(obj: models.Model, **kwargs) -> models.Model:
         """ Clones a django model instance."""
         obj = deepcopy(obj)
         obj.pk = None
+        for k, v in kwargs.items():
+            setattr(obj, k, v)
         obj.save(force_insert=True)
         return obj
 
@@ -146,10 +148,10 @@ class APIHelpersMixin(MixinTarget):
         if isinstance(value, str):
             return value + 'N'
         if isinstance(value, datetime):
-            return value + timedelta(seconds=1)
+            return (value + timedelta(seconds=1)).isoformat()
         if isinstance(value, date):
-            return value + timedelta(days=1)
-        raise TypeError(value)
+            return (value + timedelta(days=1)).isoformat()
+        raise TypeError(value, field)
 
     def perform_request(self, suffix: str, detail: bool, *,
                         method: str = 'GET',
