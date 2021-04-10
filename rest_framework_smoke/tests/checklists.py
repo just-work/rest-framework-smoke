@@ -9,7 +9,7 @@ else:
     CheckListTarget = object
 
 
-class CommonAPICheckList(CheckListTarget):
+class CommonAPICheckList(CheckListTarget):  # pragma: no cover
     """
     A collection of tests for CRUDL API
     """
@@ -22,7 +22,8 @@ class CommonAPICheckList(CheckListTarget):
         raise NotImplementedError()
 
 
-class ReadAPICheckList(CommonAPICheckList):
+# noinspection PyAbstractClass
+class ReadAPICheckList(CommonAPICheckList):  # pragma: no cover
     """
     A collection of tests for read-only API (list/detail)
     """
@@ -42,7 +43,7 @@ class ReadAPICheckList(CommonAPICheckList):
 
 
 # noinspection PyAbstractClass
-class ListAPICheckList(ReadAPICheckList):
+class ListAPICheckList(ReadAPICheckList):  # pragma: no cover
     """
     A collection of tests for object list api
     """
@@ -83,7 +84,7 @@ class ListAPICheckList(ReadAPICheckList):
 
 
 # noinspection PyAbstractClass
-class RetrieveAPICheckList(ReadAPICheckList):
+class RetrieveAPICheckList(ReadAPICheckList):  # pragma: no cover
     """
     A collection of tests for object detail API.
     """
@@ -104,7 +105,7 @@ class RetrieveAPICheckList(ReadAPICheckList):
 
 
 # noinspection PyAbstractClass
-class ReadOnlyAPICheckList(ReadAPICheckList):
+class ReadOnlyAPICheckList(ReadAPICheckList):  # pragma: no cover
     """
     A collection of tests for read-only API (without create/update/delete)
     """
@@ -131,7 +132,8 @@ class ReadOnlyAPICheckList(ReadAPICheckList):
         raise NotImplementedError()
 
 
-class CreateAPICheckList(CommonAPICheckList):
+# noinspection PyAbstractClass
+class CreateAPICheckList(CommonAPICheckList):  # pragma: no cover
     """
     A collection of tests for create object API.
     """
@@ -165,7 +167,8 @@ class CreateAPICheckList(CommonAPICheckList):
         raise NotImplementedError()
 
 
-class UpdateAPICheckList(CommonAPICheckList):
+# noinspection PyAbstractClass
+class UpdateAPICheckList(CommonAPICheckList):  # pragma: no cover
     """
     A collection of tests for object update API.
     """
@@ -179,7 +182,7 @@ class UpdateAPICheckList(CommonAPICheckList):
 
 
 # noinspection PyAbstractClass
-class FullUpdateAPICheckList(UpdateAPICheckList):
+class FullUpdateAPICheckList(UpdateAPICheckList):  # pragma: no cover
     """
     A collection of tests for full update API.
     """
@@ -214,7 +217,7 @@ class FullUpdateAPICheckList(UpdateAPICheckList):
 
 
 # noinspection PyAbstractClass
-class PartialUpdateAPICheckList(UpdateAPICheckList):
+class PartialUpdateAPICheckList(UpdateAPICheckList):  # pragma: no cover
     """
     A collection of tests for partial update API.
     """
@@ -248,7 +251,8 @@ class PartialUpdateAPICheckList(UpdateAPICheckList):
         raise NotImplementedError()
 
 
-class DeleteAPICheckList(CommonAPICheckList):
+# noinspection PyAbstractClass
+class DeleteAPICheckList(CommonAPICheckList):  # pragma: no cover
     """
     A collection of tests for delete object API.
     """
@@ -274,7 +278,7 @@ class CompleteAPICheckList(CreateAPICheckList,
                            FullUpdateAPICheckList,
                            PartialUpdateAPICheckList,
                            DeleteAPICheckList,
-                           ListAPICheckList):
+                           ListAPICheckList):  # pragma: no cover
     """
     A collection of tests for whole-CRUDL API.
     """
