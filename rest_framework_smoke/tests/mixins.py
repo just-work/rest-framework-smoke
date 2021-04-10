@@ -13,13 +13,14 @@ from django.db.models.options import Options
 from django.utils.datastructures import MultiValueDict
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_405_METHOD_NOT_ALLOWED,
 )
+from rest_framework.test import APITestCase
+
 from rest_framework_smoke.tests import schemas
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -194,7 +195,7 @@ class APIHelpersMixin(MixinTarget):
                                  status=status, **kwargs)
         data = r.json()
         if self.pagination_schema:
-            return data[self.page_result_key]
+            return data.get(self.page_result_key, data)
         else:
             return data
 
