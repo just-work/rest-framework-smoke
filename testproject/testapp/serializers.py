@@ -3,7 +3,7 @@ from rest_framework import serializers
 from testproject.testapp import models
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class ProjectTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         exclude = ('project',)
@@ -14,4 +14,17 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = models.Project
         fields = '__all__'
 
-    task_set = TaskSerializer(many=True, source='task_set.all')
+    task_set = ProjectTaskSerializer(many=True, source='task_set.all')
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Task
+        fields = '__all__'
+
+
+class TaskUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Task
+        read_only_fields = ['project']
+        fields = '__all__'
