@@ -120,7 +120,7 @@ class APIHelpersMixin(MixinTarget):
         return response.json()
 
     @staticmethod
-    def clone_object(obj: models.Model, **kwargs) -> models.Model:
+    def clone_object(obj: models.Model, **kwargs: Any) -> models.Model:
         """ Clones a django model instance."""
         obj = deepcopy(obj)
         obj.pk = None
@@ -217,19 +217,19 @@ class APIHelpersMixin(MixinTarget):
         return r.json()
 
     def perform_update(self, data: dict, partial: bool = False,
-                       status: int = HTTP_200_OK, **kwargs) -> dict:
+                       status: int = HTTP_200_OK, **kwargs: Any) -> dict:
         """ Returns details for an object updated via api."""
         method = 'PATCH' if partial else 'PUT'
         r = self.perform_request('detail', False, method=method,
                                  status=status, data=data, **kwargs)
         return r.json()
 
-    def perform_delete(self, *, status: int = HTTP_204_NO_CONTENT, **kwargs
+    def perform_delete(self, *, status: int = HTTP_204_NO_CONTENT, **kwargs: Any
                        ) -> Optional[dict]:
         """ Performs an object deletion via api."""
         r = self.perform_request('detail', False, method='DELETE',
                                  status=status, **kwargs)
-        return self.maybe_json(r)
+        return cast(Optional[dict], self.maybe_json(r))
     
     def delete(self, status: int = HTTP_204_NO_CONTENT,
                obj: Optional[models.Model] = None
@@ -297,7 +297,7 @@ class APIHelpersMixin(MixinTarget):
         """
         return schemas.get_object_schema(self.schema)
 
-    def get_details_schema(self, attr='details_schema') -> dict:
+    def get_details_schema(self, attr: str = 'details_schema') -> dict:
         """ Returns object schema for details response."""
         return schemas.get_object_schema(getattr(self, attr))
 
@@ -347,9 +347,9 @@ class ListTestsMixin(APIHelpersTarget):
         r = self.perform_request('list', False)
         self.assert_json_schema(r.json(), self.get_list_schema())
 
-    def test_list_default_filters(self):
+    def test_list_default_filters(self) -> None:
         """ API outputs all objects from db."""
-        self.assert_object_list(self.model.objects.all())
+        self.assert_object_list(list(self.model.objects.all()))
 
     def test_object_list_smoke(self) -> None:
         """ Check that object list API returns an object list."""
@@ -392,19 +392,19 @@ class ReadViewSetTestsMixin(ListTestsMixin, DetailTestsMixin, APIHelpersMixin):
 class ReadOnlyViewSetTestsMixin(ReadViewSetTestsMixin):
     """ Tests for read-only API ViewSets (write not allowed)."""
 
-    def test_create_not_allowed(self):
+    def test_create_not_allowed(self) -> None:
         """ Object creation is not allowed."""
         self.perform_request('list', False, method='POST',
                              status=HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_update_not_allowed(self):
+    def test_update_not_allowed(self) -> None:
         """ Object update is not allowed."""
         for method in ('PUT', 'PATCH'):
             with self.subTest(method):
                 self.perform_request('detail', True, method=method,
                                      status=HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_delete_not_allowed(self):
+    def test_delete_not_allowed(self) -> None:
         """ Object deletion is not allowed."""
         self.perform_request('detail', True, method='DELETE',
                              status=HTTP_405_METHOD_NOT_ALLOWED)
@@ -413,7 +413,7 @@ class ReadOnlyViewSetTestsMixin(ReadViewSetTestsMixin):
 class CreateViewSetTestsMixin(APIHelpersMixin):
     """ Tests for create method in API ViewSet."""
 
-    def test_create_format(self):
+    def test_create_format(self) -> None:
         """ Checks create API response format."""
         data = self.create()
         self.assert_json_schema(data, self.get_details_schema())
@@ -425,13 +425,14 @@ class CreateViewSetTestsMixin(APIHelpersMixin):
         pk = data[self.pk_field]
         obj = self.model.objects.filter(pk=pk).first()
         self.assertIsNotNone(obj)
+        assert obj is not None
         return obj
 
 
 class DeleteViewSetTestsMixin(APIHelpersMixin):
     """ Tests for delete method in API ViewSet."""
 
-    def test_delete_object_smoke(self):
+    def test_delete_object_smoke(self) -> None:
         """ Checks that object is deleted via API."""
         self.delete()
 
@@ -439,12 +440,12 @@ class DeleteViewSetTestsMixin(APIHelpersMixin):
 class FullUpdateViewSetTestsMixin(APIHelpersMixin):
     """ Tests for full update in API ViewSet."""
 
-    def test_full_update_format(self):
+    def test_full_update_format(self) -> None:
         """ Checks PUT response format."""
         data = self.update()
         self.assert_json_schema(data, self.get_details_schema())
 
-    def test_full_update_smoke(self):
+    def test_full_update_smoke(self) -> None:
         """ Checks that object can be updated via API."""
         previous = self.get_detail()
         data = self.update()
@@ -457,7 +458,7 @@ class FullUpdateViewSetTestsMixin(APIHelpersMixin):
 class PartialUpdateViewSetTestsMixin(APIHelpersMixin):
     """ Tests for partial update in API ViewSet."""
 
-    def test_partial_update_format(self):
+    def test_partial_update_format(self) -> None:
         """ Checks PATCH response format."""
         previous = self.get_detail()
         read_only = [self.pk_field] + list(self.read_only_update_fields)
@@ -471,7 +472,7 @@ class PartialUpdateViewSetTestsMixin(APIHelpersMixin):
             else:
                 self.assertEqual(previous[k], data[k], k)
 
-    def test_partial_update_smoke(self):
+    def test_partial_update_smoke(self) -> None:
         """ Checks that object can be updated via API."""
         previous = self.get_detail()
         data = self.update(partial=True)
