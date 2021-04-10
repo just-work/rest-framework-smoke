@@ -1,4 +1,3 @@
-import json
 import random
 from copy import deepcopy
 from datetime import datetime, timedelta, date
@@ -20,6 +19,7 @@ from rest_framework.status import (
     HTTP_405_METHOD_NOT_ALLOWED,
 )
 from rest_framework.test import APITestCase
+from rest_framework.utils import encoders
 
 from rest_framework_smoke.tests import schemas
 
@@ -148,9 +148,9 @@ class APIHelpersMixin(MixinTarget):
         if isinstance(value, str):
             return value + 'N'
         if isinstance(value, datetime):
-            return (value + timedelta(seconds=1)).isoformat()
+            return value + timedelta(seconds=1)
         if isinstance(value, date):
-            return (value + timedelta(days=1)).isoformat()
+            return value + timedelta(days=1)
         raise TypeError(value, field)
 
     def perform_request(self, suffix: str, detail: bool, *,
@@ -176,8 +176,9 @@ class APIHelpersMixin(MixinTarget):
         url = self.url(suffix, **kwargs)
         if data is not None:
             headers['content_type'] = 'application/json'
+        body = encoders.JSONEncoder().encode(data)
         r = cast(Response, self.client.generic(method, url,
-                                               data=json.dumps(data),
+                                               data=body,
                                                **headers))
         self.assertEqual(r.status_code, status, self.maybe_json(r))
         return r
