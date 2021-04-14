@@ -1,4 +1,4 @@
-TASK_SCHEMA = {
+PROJECT_TASK_SCHEMA = {
     "id": {"type": "number"},
     "name": {"type": ["string", "null"]},
 }
@@ -8,6 +8,12 @@ PROJECT_SCHEMA = {
     "name": {"type": ["string"]},
     "task_set": {
         "type": "array",
-        "items": TASK_SCHEMA,
+        "items": PROJECT_TASK_SCHEMA,
     }
+}
+
+TASK_SCHEMA = {
+    "id": {"type": "number"},
+    "project": {"type": "number"},
+    "name": {"type": ["string", "null"]},
 }
