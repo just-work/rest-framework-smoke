@@ -19,7 +19,7 @@ def get_array_schema(schema: dict) -> dict:
     return {
         "type": ["array"],
         "minItems": 1,
-        "items": get_object_schema(schema)
+        "items": get_object_schema(schema["items"])
     }
 
 
@@ -51,7 +51,7 @@ def get_object_schema(schema: dict) -> dict:
             schema[name] = get_object_schema(attribute["properties"])
         if attribute["type"] == ["array"]:
             # ensure that array schema is enforced
-            schema[name] = get_array_schema(attribute["items"])
+            schema[name] = get_array_schema(attribute)
 
     return {
         "type": ['object'],
