@@ -299,7 +299,8 @@ class APIHelpersMixin(MixinTarget):
 
     def get_details_schema(self, attr: str = 'details_schema') -> dict:
         """ Returns object schema for details response."""
-        return schemas.get_object_schema(getattr(self, attr))
+        schema = getattr(self, attr, self.details_schema)
+        return schemas.get_object_schema(schema)
 
     def get_list_schema(self, min_items: int = 1) -> dict:
         """ Returns list response schema with pagination data
@@ -416,7 +417,7 @@ class CreateViewSetTestsMixin(APIHelpersMixin):
     def test_create_format(self) -> None:
         """ Checks create API response format."""
         data = self.create()
-        self.assert_json_schema(data, self.get_details_schema())
+        self.assert_json_schema(data, self.get_details_schema('create_schema'))
 
     def test_create_object_smoke(self) -> models.Model:
         """ Checks that object is created via API."""
@@ -443,7 +444,7 @@ class FullUpdateViewSetTestsMixin(APIHelpersMixin):
     def test_full_update_format(self) -> None:
         """ Checks PUT response format."""
         data = self.update()
-        self.assert_json_schema(data, self.get_details_schema())
+        self.assert_json_schema(data, self.get_details_schema('update_schema'))
 
     def test_full_update_smoke(self) -> None:
         """ Checks that object can be updated via API."""
