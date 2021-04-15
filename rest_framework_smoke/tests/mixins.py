@@ -1,7 +1,8 @@
 import random
 from copy import deepcopy
 from datetime import datetime, timedelta, date
-from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any, Type)
+from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any, Type,
+                    Sequence)
 from urllib.parse import urlencode
 
 import jsonschema
@@ -65,10 +66,10 @@ class APIHelpersMixin(MixinTarget):
     authentication: bool = True
 
     # list of fields that can't be set via create API
-    read_only_create_fields = ()
+    read_only_create_fields: Sequence[str] = ()
 
     # list of fields that can't be updated via API
-    read_only_update_fields = ()
+    read_only_update_fields: Sequence[str] = ()
 
     @property
     def obj(self) -> models.Model:
