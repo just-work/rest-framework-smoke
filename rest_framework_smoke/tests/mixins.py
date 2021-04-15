@@ -225,11 +225,11 @@ class APIHelpersMixin(MixinTarget):
                                  **kwargs)
         return r.json()
 
-    def perform_create(self, data: dict,
-                       status: int = HTTP_201_CREATED) -> dict:
+    def perform_create(self, data: dict, status: int = HTTP_201_CREATED,
+                       **kwargs: Any) -> dict:
         """ Returns object details created via api."""
         r = self.perform_request('list', False, method='POST',
-                                 status=status, data=data)
+                                 status=status, data=data, **kwargs)
         return r.json()
 
     def perform_update(self, data: dict, partial: bool = False,
@@ -240,8 +240,8 @@ class APIHelpersMixin(MixinTarget):
                                  status=status, data=data, **kwargs)
         return r.json()
 
-    def perform_delete(self, *, status: int = HTTP_204_NO_CONTENT, **kwargs: Any
-                       ) -> Optional[dict]:
+    def perform_delete(self, *, status: int = HTTP_204_NO_CONTENT,
+                       **kwargs: Any) -> Optional[dict]:
         """ Performs an object deletion via api."""
         r = self.perform_request('detail', False, method='DELETE',
                                  status=status, **kwargs)
