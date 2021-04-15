@@ -3,12 +3,14 @@ from copy import deepcopy
 from datetime import datetime, timedelta, date
 from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any, Type)
 from urllib.parse import urlencode
+from uuid import uuid4
 
 import jsonschema
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models import ForeignKey
 from django.db.models.options import Options
+from django.test.client import encode_multipart
 from django.utils.datastructures import MultiValueDict
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -153,11 +155,13 @@ class APIHelpersMixin(MixinTarget):
             return value + timedelta(days=1)
         raise TypeError(value, field)
 
+    # noinspection PyShadowingBuiltins
     def perform_request(self, suffix: str, detail: bool, *,
                         method: str = 'GET',
                         headers: Optional[dict] = None,
                         status: int = HTTP_200_OK,
                         data: Optional[dict] = None,
+                        format: str = 'json',
                         **kwargs: Any) -> Response:
         """
         Requests viewset endpoint.
@@ -168,17 +172,29 @@ class APIHelpersMixin(MixinTarget):
         :param headers: http headers dict
         :param status: expected response status
         :param data: request body data
+        :param format: request format (json/multipart)
         :param kwargs: url reversing parameters
         """
         headers = headers or {}
         if detail and not kwargs:
             kwargs = self.get_detail_url_kwargs(self.obj)
         url = self.url(suffix, **kwargs)
+        body = None
+        content_type = headers.pop('content_type', 'application/octet-stream')
         if data is not None:
-            headers['content_type'] = 'application/json'
-        body = encoders.JSONEncoder().encode(data)
+            if format == 'json':
+                content_type = 'application/json'
+                body = encoders.JSONEncoder().encode(data)
+            elif format == 'multipart':
+                b = uuid4().hex
+                content_type = f'multipart/form-data; boundary={b}'
+                body = encode_multipart(b, data)
+            else:
+                raise ValueError(format)
+
         r = cast(Response, self.client.generic(method, url,
                                                data=body,
+                                               content_type=content_type,
                                                **headers))
         self.assertEqual(r.status_code, status, self.maybe_json(r))
         return r
