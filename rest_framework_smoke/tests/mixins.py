@@ -179,7 +179,7 @@ class APIHelpersMixin(MixinTarget):
         if detail and not kwargs:
             kwargs = self.get_detail_url_kwargs(self.obj)
         url = self.url(suffix, **kwargs)
-        body = None
+        body: Union[None, str, bytes] = None
         content_type = headers.pop('content_type', 'application/octet-stream')
         if data is not None:
             if format == 'json':
