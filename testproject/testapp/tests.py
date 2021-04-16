@@ -1,4 +1,7 @@
+from typing import Any
+
 from django.contrib.auth.models import User
+from django.db.models import Model
 from rest_framework.test import APITestCase
 
 from rest_framework_smoke.tests import checklists, mixins
@@ -23,8 +26,13 @@ class ProjectViewSetTestCase(mixins.ReadOnlyViewSetTestsMixin,
 
     @classmethod
     def setUpTestData(cls):
+        cls.user = User.objects.create_user('username', 'password')
         cls.project = models.Project.objects.create(name='project')
-        cls.task = models.Task.objects.create(name='task', project=cls.project)
+        cls.task = models.Task.objects.create(
+            name='task',
+            project=cls.project,
+            author=cls.user
+        )
 
     def test_read_permissions(self):
         """ Project list is accessible for anonymous users."""
@@ -46,17 +54,32 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
     schema = details_schema = schemas.TASK_SCHEMA
     pagination_schema = PAGINATE_SCHEMA
     authentication = True
+    read_only_create_fields = ['author']
     read_only_update_fields = ['project']
 
     @classmethod
     def setUpTestData(cls):
         cls.project = models.Project.objects.create(name='project')
-        cls.task = models.Task.objects.create(name='task', project=cls.project)
         cls.user = User.objects.create_user('login', password='password')
+        cls.task = models.Task.objects.create(
+            name='task',
+            project=cls.project,
+            author=cls.user)
 
     def setUp(self) -> None:
         super().setUp()
         self.client.force_authenticate(self.user)
+
+    def clone_object(self, obj: Model, **kwargs: Any) -> Model:
+        """
+        Default update tests implementations calls clone_object to alter
+        ForeignKey values for updated objects.
+        This may lead to unique key violation, so override default behavior to
+        alter some fields while cloning.
+        """
+        if isinstance(obj, User):
+            kwargs['username'] = obj.username + 'n'
+        return super().clone_object(obj, **kwargs)
 
     def test_create_validation(self):
         """ Created tasks require a name and a project."""
@@ -72,7 +95,10 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
 
     def test_list_default_ordering(self):
         """ Tasks are sorted by name."""
-        self.task2 = models.Task.objects.create(name='a', project=self.project)
+        self.task2 = models.Task.objects.create(
+            name='a',
+            project=self.project,
+            author=self.user)
 
         self.assert_object_list([self.task2, self.task])
 
@@ -83,7 +109,10 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
     def test_list_filter_params(self):
         """ Tasks can be filtered by project id."""
         p2 = models.Project.objects.create(name='p2')
-        task2 = models.Task.objects.create(name='another', project=p2)
+        task2 = models.Task.objects.create(
+            name='another',
+            project=p2,
+            author=self.user)
 
         self.assert_object_list([task2, self.task])
 

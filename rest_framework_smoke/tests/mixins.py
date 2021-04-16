@@ -1,7 +1,8 @@
 import random
 from copy import deepcopy
 from datetime import datetime, timedelta, date
-from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any, Type)
+from typing import (Optional, Union, List, cast, TYPE_CHECKING, Any, Type,
+                    Sequence)
 from urllib.parse import urlencode
 from uuid import uuid4
 
@@ -66,8 +67,11 @@ class APIHelpersMixin(MixinTarget):
     # client authentication is performed in API
     authentication: bool = True
 
+    # list of fields that can't be set via create API
+    read_only_create_fields: Sequence[str] = ()
+
     # list of fields that can't be updated via API
-    read_only_update_fields = ()
+    read_only_update_fields: Sequence[str] = ()
 
     @property
     def obj(self) -> models.Model:
@@ -269,11 +273,21 @@ class APIHelpersMixin(MixinTarget):
         :return: response data
         """
         if data is None:
-            data = self.get_detail()
+            data = self.get_create_data(self.obj)
             self.obj.delete()
-            del data[self.pk_field]
 
         return self.perform_create(data, status=status)
+
+    def get_create_data(self, obj: models.Model) -> dict:
+        """
+        Returns create request data based on a details response.
+        """
+        kwargs = self.get_detail_url_kwargs(obj)
+        data = self.get_detail(**kwargs)
+        del data[self.pk_field]
+        for f in self.read_only_create_fields:
+            data.pop(f, None)
+        return data
 
     def update(self,
                obj: Optional[models.Model] = None,
@@ -293,20 +307,30 @@ class APIHelpersMixin(MixinTarget):
         """
         if obj is None:
             obj = self.obj
-        kwargs = self.get_detail_url_kwargs(obj)
-        read_only = self.read_only_update_fields
         if data is None:
-            data = self.get_detail(**kwargs)
-            del data[self.pk_field]
-            for k in data:
-                if k in read_only:
-                    continue
-                data[k] = self.change_value(obj, k)
-            if partial:
-                key = random.choice([f for f in data if f not in read_only])
-                data = {key: data[key]}
+            data = self.get_update_data(obj, partial=partial)
+        kwargs = self.get_detail_url_kwargs(obj)
         return self.perform_update(data, status=status, partial=partial,
                                    **kwargs)
+
+    def get_update_data(self, obj: models.Model, partial: bool = False) -> dict:
+        """
+        Gets update request data based on details response for selected object.
+
+        :param obj: object to be updated
+        :param partial: PATCH request flag. If True, only one random field is
+        changed.
+        :return: data for update request.
+        """
+        kwargs = self.get_detail_url_kwargs(obj)
+        data = self.get_detail(**kwargs)
+        del data[self.pk_field]
+        keys = [k for k in data if k not in self.read_only_update_fields]
+        if partial:
+            keys = [random.choice(keys)]
+        for k in keys:
+            data[k] = self.change_value(obj, k)
+        return data
 
     def get_schema(self) -> dict:
         """ Returns object schema for list response.
