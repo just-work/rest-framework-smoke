@@ -63,6 +63,13 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
         data = self.create({}, status=400)
         self.assertSetEqual(set(data), {'name', 'project'})
 
+    def test_create_multipart(self):
+        """ Just a smoke test to demonstrate multipart/form-data requests."""
+        data = {'name': 'A name', 'project': self.project.id}
+        data = self.perform_create(data, status=201, format='multipart')
+        self.assertTrue(models.Task.objects.filter(
+            pk=data['id'], name='A name', project=self.project).exists())
+
     def test_list_default_ordering(self):
         """ Tasks are sorted by name."""
         self.task2 = models.Task.objects.create(name='a', project=self.project)
