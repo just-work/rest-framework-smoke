@@ -44,7 +44,10 @@ def get_object_schema(schema: dict) -> dict:
             attribute["type"] = [attribute["type"]]
         elif isinstance(attribute["type"], (list, tuple)):
             # remove null because of high probability of type check skip
-            attribute["type"] = [t for t in attribute["type"] if t != "null"]
+            not_null = [t for t in attribute["type"] if t != "null"]
+            if not_null:
+                # remove nulls from types list, if it is not the only one
+                attribute["type"] = not_null
 
         if attribute["type"] == ["object"]:
             # ensure that object schema is enforced
