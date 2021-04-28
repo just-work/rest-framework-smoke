@@ -1,12 +1,7 @@
 from copy import deepcopy
 from datetime import datetime, date, time
 from functools import wraps
-from typing import Dict, Any, Union, List, Tuple, Optional, TypeVar, cast
-
-try:
-    from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol
+from typing import Dict, Any, Union, List, Tuple, Optional, Callable
 
 AnyDict = Dict[str, Any]
 AnyList = List[Any]
@@ -36,27 +31,14 @@ JSON_SCHEMA_FORMATS: Dict[type, str] = {
     time: "time",
 }
 
-Obj = TypeVar("Obj")
-Res = TypeVar("Res")
 
-
-class EnforcingCallable(Protocol[Obj, Res]):
-    def __call__(self, obj: Obj) -> Res:
-        pass
-
-
-class EnforcedCallable(Protocol[Obj, Res]):
-    def __call__(self, obj: Obj, enforce: bool = True) -> Res:
-        pass
-
-
-def enforced(func: EnforcingCallable[Obj, Res]) -> EnforcedCallable[Obj, Res]:
+def enforced(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(obj: Obj, enforce: bool = True) -> Res:
+    def wrapper(obj: Any, enforce: bool = True) -> Any:
         schema = func(obj)
         return enforce_schema(schema, enforce=enforce)
 
-    return cast(EnforcedCallable[Obj, Res], wrapper)
+    return wrapper
 
 
 @enforced
@@ -72,7 +54,7 @@ def get_object_schema(schema: AnyDict) -> AnyDict:
     if schema.get('type') == 'object':
         # bypass
         return schema
-    properties = {k: get_schema(v, enforce=False) for k, v in schema.items()}
+    properties: AnyDict = {k: get_schema(v, False) for k, v in schema.items()}
     return {
         "type": "object",
         "properties": properties,
@@ -86,7 +68,7 @@ def get_array_schema(schema: Union[str, type, AnyDict]) -> AnyDict:
     """
     if isinstance(schema, (str, type)):
         # items type is pointing to a jsonschema type name or to a python type
-        items = get_schema(schema, enforce=False)
+        items: AnyDict = get_schema(schema, enforce=False)
     elif not isinstance(schema, dict):
         raise TypeError(schema)
     elif schema.get('type') == 'array':
@@ -169,7 +151,7 @@ def get_schema(attr: Union[str, type, None, AnyDict, AnyList]) -> AnyDict:
             if fmt is not None:
                 string_formats.add(fmt)
             type_names.add(name)
-        result = {
+        result: AnyDict = {
             "type": list(sorted(type_names))
         }
         if len(string_formats) == 1:
