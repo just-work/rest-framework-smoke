@@ -1,11 +1,13 @@
+from datetime import datetime, date, time
 from typing import Any
 
 from django.contrib.auth.models import User
 from django.db.models import Model
+from django.test import SimpleTestCase
 from rest_framework.test import APITestCase
 
 from rest_framework_smoke.tests import checklists, mixins
-from rest_framework_smoke.tests.schemas import PAGINATE_SCHEMA
+from rest_framework_smoke.tests.schemas import PAGINATE_SCHEMA, get_schema
 from testproject.testapp import models, schemas
 from rest_framework.test import APIClient
 from django_testing_utils.mixins import BaseTestCase
@@ -127,3 +129,250 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
         self.assert_object_fields(
             self.task,
             project=self.project)
+
+
+class SchemaHelpersTestCase(SimpleTestCase):
+    """ Tests for schema generation helpers."""
+
+    def test_get_schema_from_json_schema_type_name(self):
+        """
+        Generating jsonschema type definition from type name
+        """
+        schema = get_schema("integer", enforce=False)
+        expected = {"type": "integer"}
+        self.assertEqual(schema, expected)
+
+    def test_get_schema_from_python_type(self):
+        """
+        Generating jsonschema type definition from python type
+        """
+        cases = (
+            (None, 'null', None),
+            (int, 'integer', None),
+            (float, 'number', None),
+            (str, 'string', None),
+            (bool, 'boolean', None),
+            (datetime, 'string', 'date-time'),
+            (date, 'string', 'date'),
+            (time, 'string', 'time'),
+        )
+        for t, name, fmt in cases:
+            with self.subTest(name):
+                schema = get_schema(t, enforce=False)
+                expected = {
+                    "type": name
+                }
+                if fmt is not None:
+                    expected["format"] = fmt
+                self.assertDictEqual(schema, expected)
+
+    def test_get_schema_for_list_of_types(self):
+        """
+        Generating a schema for a set of type variants.
+        """
+        schema = get_schema([None, int, "boolean"], enforce=False)
+        expected = {
+            "type": ["boolean", "integer", "null"]
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_get_schema_for_an_object(self):
+        """
+        Generating a schema for a json object.
+        """
+        schema = get_schema({
+            "id": int,
+            "name": "string",
+            "value": [None, float]
+        }, enforce=False)
+        expected = {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "name": {"type": "string"},
+                "value": {"type": ["null", "number"]}
+            }
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_get_schema_for_an_array_of_objects(self):
+        """
+        Generating a schema for an array of json objects.
+        """
+        schema = get_schema([{"id": int}], enforce=False)
+        expected = {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"}
+                }
+            }
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_compat_get_schema_for_an_array_of_types(self):
+        """
+        For backward compatibility schema for [bool] is not an array of boolean,
+        but an element of single boolean type.
+        """
+        schema = get_schema([bool], enforce=False)
+        expected = {"type": ["boolean"]}
+        self.assertDictEqual(schema, expected)
+
+    def test_get_schema_for_nested_object(self):
+        """
+        Generating schema for an object that contains nested object.
+        """
+        schema = get_schema({
+            "id": int,
+            "nested": {
+                "name": "string"
+            },
+            "array": [{"slug": "string"}]
+        }, enforce=False)
+        expected = {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "nested": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"}
+                    }
+                },
+                "array": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {"type": "string"}
+                        }
+                    }
+                }
+            }
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_enforce_null_type_variant(self):
+        """
+        Enforcing schema removing null type variant from all types.
+        """
+        with self.subTest("remove null variant"):
+            schema = get_schema([None, int], enforce=True)
+            expected = {
+                "type": ["integer"]
+            }
+            self.assertDictEqual(schema, expected)
+        with self.subTest("skip enforce"):
+            schema = get_schema([None, int], enforce=False)
+            expected = {
+                "type": ["integer", "null"]
+            }
+            self.assertDictEqual(schema, expected)
+        with self.subTest("leave single null"):
+            schema = get_schema([None], enforce=True)
+            expected = {
+                "type": ["null"]
+            }
+            self.assertDictEqual(schema, expected)
+
+    def test_enforce_object_schema(self):
+        """
+        Enforcing object schema with restricting a set of properties and marking
+        all of them as required.
+        """
+        with self.subTest("enforcing object schema"):
+            schema = get_schema({"id": ["null", "integer"]}, enforce=True)
+            expected = {
+                "type": "object",
+                "properties": {
+                    "id": {"type": ["integer"]}
+                },
+                "required": ["id"],
+                "additionalProperties": False
+            }
+            self.assertDictEqual(schema, expected)
+        with self.subTest("skip enforcing object schema"):
+            schema = get_schema({"id": ["null", "integer"]}, enforce=False)
+            expected = {
+                "type": "object",
+                "properties": {
+                    "id": {"type": ["integer", "null"]}
+                }
+            }
+            self.assertDictEqual(schema, expected)
+
+    def test_enforce_array_schema(self):
+        """
+        Enforcing array schema with min array length.
+        """
+        with self.subTest("enforcing array schema"):
+            schema = get_schema([{"id": ["null", "integer"]}], enforce=True)
+            expected = {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": ["integer"]}
+                    },
+                    "required": ["id"],
+                    "additionalProperties": False
+                }
+            }
+            self.assertDictEqual(schema, expected)
+        with self.subTest("skip enforcing array schema"):
+            schema = get_schema([{"id": ["null", "integer"]}], enforce=False)
+            expected = {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": ["integer", "null"]}
+                    },
+                }
+            }
+            self.assertDictEqual(schema, expected)
+
+    def test_enforce_schema_recurse(self):
+        """
+        Enforcing schema for nested arrays and objects.
+        """
+        self.maxDiff = None
+        schema = get_schema({
+            "id": [None, int],
+            "nested": {
+                "name": "string",
+            },
+            "array": [{"slug": "string"}]
+        }, enforce=True)
+        expected = {
+            "type": "object",
+            "properties": {
+                "id": {"type": ["integer"]},
+                "nested": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"}
+                    },
+                    "required": ["name"],
+                    "additionalProperties": False
+                },
+                "array": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {"type": "string"}
+                        },
+                        "required": ["slug"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            "required": ["id", "nested", "array"],
+            "additionalProperties": False,
+        }
+        self.assertDictEqual(schema, expected)
