@@ -164,7 +164,7 @@ def get_schema(attr: Union[str, type, None, AnyDict, AnyList]) -> AnyDict:
         return result
     if isinstance(attr, dict):
         # {content} is either jsonschema definition or a shortcut for an object
-        if 'type' in attr:  # pragma: no cover
+        if 'type' in attr:
             # jsonschema definition, bypass
             return attr
         return get_object_schema(attr, enforce=False)

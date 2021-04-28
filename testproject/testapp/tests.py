@@ -389,6 +389,15 @@ class SchemaHelpersTestCase(SimpleTestCase):
 
         self.assertIs(schema, get_object_schema(schema, enforce=False))
 
+    def test_bypass_elem_schema(self):
+        """
+        A complete schema can be passed and will not be modified.
+        """
+        schema = {
+            "type": "string"
+        }
+        self.assertIs(schema, get_schema(schema, enforce=False))
+
     def test_get_array_schema_for_an_ordinary_type(self):
         """
         Generating array schema for ordinary types.
