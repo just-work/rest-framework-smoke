@@ -19,7 +19,7 @@ def get_array_schema(schema: dict) -> dict:
     return {
         "type": ["array"],
         "minItems": 1,
-        "items": get_object_schema(schema["items"])
+        "items": get_object_schema(schema.get("items", schema))
     }
 
 
