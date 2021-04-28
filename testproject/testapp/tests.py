@@ -7,7 +7,9 @@ from django.test import SimpleTestCase
 from rest_framework.test import APITestCase
 
 from rest_framework_smoke.tests import checklists, mixins
-from rest_framework_smoke.tests.schemas import PAGINATE_SCHEMA, get_schema
+from rest_framework_smoke.tests.schemas import (PAGINATE_SCHEMA, get_schema,
+                                                get_array_schema,
+                                                get_object_schema)
 from testproject.testapp import models, schemas
 from rest_framework.test import APIClient
 from django_testing_utils.mixins import BaseTestCase
@@ -374,5 +376,70 @@ class SchemaHelpersTestCase(SimpleTestCase):
             },
             "required": ["id", "nested", "array"],
             "additionalProperties": False,
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_bypass_object_schema(self):
+        """
+        A complete json object schema can be passed and it will not be modified.
+        """
+        schema = {
+            'type': 'object'
+        }
+
+        self.assertIs(schema, get_object_schema(schema, enforce=False))
+
+    def test_get_array_schema_for_an_ordinary_type(self):
+        """
+        Generating array schema for ordinary types.
+        """
+        schema = get_array_schema(float, enforce=False)
+        expected = {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_bypass_array_schema(self):
+        """
+        A complete json array schema can be passed and it will not be modified.
+        """
+        schema = {
+            "type": "array"
+        }
+        self.assertIs(schema, get_array_schema(schema, enforce=False))
+
+    def test_pass_full_schema_to_an_array(self):
+        """
+        A complete object schema can be passed to array schema and it will not
+        be modified.
+        """
+        schema = {
+            "type": "object"
+        }
+
+        result = get_schema([schema], enforce=False)
+        self.assertIs(result["items"], schema)
+
+    def test_merge_string_and_format(self):
+        """
+        When any string is allowed, types described by string with format are
+        omitted.
+        """
+        schema = get_schema([str, datetime])
+        expected = {
+            "type": ["string"]
+        }
+        self.assertDictEqual(schema, expected)
+
+    def test_pass_format_for_string(self):
+        """
+        When a type described via string with format is passed as single item
+        in type list, format is passed to complete schema.
+        """
+        schema = get_schema([datetime])
+        expected = {
+            "type": ["string"],
+            "format": "date-time",
         }
         self.assertDictEqual(schema, expected)
