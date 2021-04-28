@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 from setuptools import setup  # type: ignore
@@ -58,6 +59,14 @@ def get_version():
     return version
 
 
+install_requires = [
+    'Django',
+    'djangorestframework',
+    'jsonschema',
+]
+if sys.version_info < (3, 7):
+    install_requires.append("typing_extensions")
+
 setup(
     name=package_name,
     version=get_version() or 'dev',
@@ -69,11 +78,7 @@ setup(
     author='Sergey Tikhonov',
     author_email='zimbler@gmail.com',
     description='Smoke tests for API built with Django Rest Framework',
-    install_requires=[
-        'Django',
-        'djangorestframework',
-        'jsonschema',
-    ],
+    install_requires=install_requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
