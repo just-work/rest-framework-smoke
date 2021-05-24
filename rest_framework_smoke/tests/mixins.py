@@ -247,7 +247,7 @@ class APIHelpersMixin(MixinTarget):
     def perform_delete(self, *, status: int = HTTP_204_NO_CONTENT,
                        **kwargs: Any) -> Optional[dict]:
         """ Performs an object deletion via api."""
-        r = self.perform_request('detail', False, method='DELETE',
+        r = self.perform_request('detail', True, method='DELETE',
                                  status=status, **kwargs)
         return cast(Optional[dict], self.maybe_json(r))
     
