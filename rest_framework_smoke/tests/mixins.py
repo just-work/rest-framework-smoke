@@ -240,7 +240,7 @@ class APIHelpersMixin(MixinTarget):
                        status: int = HTTP_200_OK, **kwargs: Any) -> dict:
         """ Returns details for an object updated via api."""
         method = 'PATCH' if partial else 'PUT'
-        r = self.perform_request('detail', False, method=method,
+        r = self.perform_request('detail', True, method=method,
                                  status=status, data=data, **kwargs)
         return r.json()
 
