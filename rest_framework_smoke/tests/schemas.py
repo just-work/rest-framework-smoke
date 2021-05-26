@@ -9,9 +9,9 @@ AnyList = List[Any]
 PAGINATE_SCHEMA = {
     "type": "object",
     "properties": {
-        "next": {"type": [str, None]},
-        "previous": {"type": [str, None]},
-        "count": {"type": int, "minimum": 0},
+        "next": {"type": ["string", "null"]},
+        "previous": {"type": ["string", "null"]},
+        "count": {"type": "integer", "minimum": 0},
     },
     "required": ["next", "previous", "count", "results"],
     "additionalProperties": False,
