@@ -1,9 +1,14 @@
 from copy import deepcopy
 
 PAGINATE_SCHEMA = {
-    "next": {"type": ["string", "null"]},
-    "previous": {"type": ["string", "null"]},
-    "count": {"type": "integer", "minimum": 0},
+    "type": "object",
+    "properties": {
+        "next": {"type": ["string", "null"]},
+        "previous": {"type": ["string", "null"]},
+        "count": {"type": "integer", "minimum": 0},
+    },
+    "required": ["next", "previous", "count", "results"],
+    "additionalProperties": False,
 }
 
 

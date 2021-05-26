@@ -353,7 +353,7 @@ class APIHelpersMixin(MixinTarget):
             return result_list_schema
 
         schema = self.pagination_schema
-        schema.update({"results": result_list_schema})
+        schema["properties"].update({"results": result_list_schema})
         return schema
 
     def assert_json_schema(self, obj: dict, schema: dict) -> None:
