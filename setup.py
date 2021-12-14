@@ -73,7 +73,6 @@ setup(
         'Django',
         'djangorestframework',
         'jsonschema',
-        'pytz',  # for DRF~=3.12.4 and Django~=4.0
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
