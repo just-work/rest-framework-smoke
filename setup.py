@@ -82,7 +82,6 @@ setup(
         'Framework :: Django :: 3.1',
         'Framework :: Django :: 3.2',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
