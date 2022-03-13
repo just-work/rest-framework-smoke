@@ -166,6 +166,7 @@ class APIHelpersMixin(MixinTarget):
                         status: int = HTTP_200_OK,
                         data: Optional[dict] = None,
                         format: str = 'json',
+                        query: Union[None, dict, MultiValueDict] = None,
                         **kwargs: Any) -> Response:
         """
         Requests viewset endpoint.
@@ -177,12 +178,13 @@ class APIHelpersMixin(MixinTarget):
         :param status: expected response status
         :param data: request body data
         :param format: request format (json/multipart)
+        :param query: request query parameters
         :param kwargs: url reversing parameters
         """
         headers = headers or {}
         if detail and not kwargs:
             kwargs = self.get_detail_url_kwargs(self.obj)
-        url = self.url(suffix, **kwargs)
+        url = self.url(suffix, query=query, **kwargs)
         body: Union[None, str, bytes] = None
         content_type = headers.pop('content_type', 'application/octet-stream')
         if data is not None:
@@ -208,14 +210,21 @@ class APIHelpersMixin(MixinTarget):
         return {self.details_url_kwarg: value}
 
     def get_list(self, headers: Optional[dict] = None,
-                 status: int = HTTP_200_OK, **kwargs: Any) -> List[dict]:
+                 status: int = HTTP_200_OK,
+                 query: Union[None, dict, MultiValueDict] = None,
+                 **kwargs: Any) -> List[dict]:
         """
         Returns list of object retrieved through api.
 
         If pagination_schema is set, strips pagination info from response
+
+        :param headers: API request headers
+        :param status: excepted response HTTP status code
+        :param query: query parameter for request
+        :param kwargs: URL reversing parameters
         """
         r = self.perform_request('list', False, headers=headers,
-                                 status=status, **kwargs)
+                                 status=status, query=query, **kwargs)
         data = r.json()
         if self.pagination_schema:
             return data.get(self.page_result_key, data)
@@ -364,12 +373,17 @@ class APIHelpersMixin(MixinTarget):
             self.fail(e.message)
 
     def assert_object_list(self, objects: List[models.Model],
+                           query: Union[None, dict, MultiValueDict] = None,
                            **kwargs: Any) -> None:
         """
         Requests object list and checks primary key lists with expected object
         list.
+
+        :param objects: excepted object list
+        :param query: request query parameters
+        :param kwargs: reversing parameters for list url
         """
-        data = self.get_list(**kwargs)
+        data = self.get_list(query=query, **kwargs)
         ids = [obj[self.pk_field] for obj in data]
         expected = [obj.pk for obj in objects]
         self.assertListEqual(ids, expected)
