@@ -1,9 +1,11 @@
+from typing import Type, List
+
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
 from rest_framework.decorators import action
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
-from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 
 from testproject.testapp import models, serializers
 
@@ -12,7 +14,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     pagination_class = None
-    permission_classes = []
+    permission_classes: List[Type[BasePermission]] = []
 
     @action(detail=True)
     def ping(self, request, pk):
@@ -37,10 +39,3 @@ class TaskViewSet(ModelViewSet):
         if self.action in ('update', 'partial_update'):
             return serializers.TaskUpdateSerializer
         return self.serializer_class
-
-    def perform_update(self, serializer: BaseSerializer) -> None:
-        super().perform_update(serializer)
-    
-    
-
-

@@ -22,6 +22,9 @@ class BaseAPITestCase(APITestCase, BaseTestCase):
 class ProjectViewSetTestCase(mixins.ReadOnlyViewSetTestsMixin,
                              checklists.ReadOnlyAPICheckList,
                              BaseAPITestCase):
+    project: models.Project
+    user: User
+
     object_name = 'project'
     basename = 'projects'
     schema = details_schema = schemas.PROJECT_SCHEMA
@@ -52,6 +55,8 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
                           checklists.CompleteAPICheckList,
                           BaseAPITestCase):
     client: APIClient
+    project: models.Project
+    user: User
 
     object_name = 'task'
     basename = 'tasks'
@@ -74,7 +79,8 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
         super().setUp()
         self.client.force_authenticate(self.user)
 
-    def clone_object(self, obj: Model, **kwargs: Any) -> Model:
+    @staticmethod
+    def clone_object(obj: Model, **kwargs: Any) -> Model:
         """
         Default update tests implementations calls clone_object to alter
         ForeignKey values for updated objects.
@@ -83,7 +89,7 @@ class TaskViewSetTestCase(mixins.ReadViewSetTestsMixin,
         """
         if isinstance(obj, User):
             kwargs['username'] = obj.username + 'n'
-        return super().clone_object(obj, **kwargs)
+        return BaseAPITestCase.clone_object(obj, **kwargs)
 
     def test_create_validation(self):
         """ Created tasks require a name and a project."""
