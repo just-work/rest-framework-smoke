@@ -19,7 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install mypy django-stubs djangorestframework-stubs
+          pip install mypy django-stubs djangorestframework-stubs django-filter-stubs
       - name: Run Mypy tests
         run: |
           mypy --config-file=mypy.ini rest_framework_smoke

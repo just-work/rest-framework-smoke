@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import jsonschema
 from django.core.exceptions import FieldDoesNotExist
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import ForeignKey
 from django.db.models.options import Options
@@ -30,6 +31,12 @@ if TYPE_CHECKING:  # pragma: no cover
     MixinTarget = APITestCase
 else:
     MixinTarget = object
+
+
+class TestResponse(Response):
+    wsgi_request: WSGIRequest
+
+    def json(self) -> Any: ...
 
 
 class APIHelpersMixin(MixinTarget):
@@ -120,7 +127,7 @@ class APIHelpersMixin(MixinTarget):
         return url
 
     @staticmethod
-    def maybe_json(response: Response) -> Union[None, list, dict]:
+    def maybe_json(response: TestResponse) -> Union[None, list, dict]:
         if response.status_code == HTTP_204_NO_CONTENT:
             return None
         return response.json()
@@ -166,7 +173,7 @@ class APIHelpersMixin(MixinTarget):
                         status: int = HTTP_200_OK,
                         data: Optional[dict] = None,
                         format: str = 'json',
-                        **kwargs: Any) -> Response:
+                        **kwargs: Any) -> TestResponse:
         """
         Requests viewset endpoint.
 
@@ -196,10 +203,8 @@ class APIHelpersMixin(MixinTarget):
             else:
                 raise ValueError(format)
 
-        r = cast(Response, self.client.generic(method, url,
-                                               data=body,
-                                               content_type=content_type,
-                                               **headers))
+        r = cast(TestResponse, self.client.generic(
+            method, url, data=body, content_type=content_type, **headers))
         self.assertEqual(r.status_code, status, self.maybe_json(r))
         return r
 
@@ -250,7 +255,7 @@ class APIHelpersMixin(MixinTarget):
         r = self.perform_request('detail', True, method='DELETE',
                                  status=status, **kwargs)
         return cast(Optional[dict], self.maybe_json(r))
-    
+
     def delete(self, status: int = HTTP_204_NO_CONTENT,
                obj: Optional[models.Model] = None
                ) -> Optional[dict]:
@@ -459,15 +464,13 @@ class CreateViewSetTestsMixin(APIHelpersMixin):
         data = self.create()
         self.assert_json_schema(data, self.get_details_schema('create_schema'))
 
-    def test_create_object_smoke(self) -> models.Model:
+    def test_create_object_smoke(self) -> None:
         """ Checks that object is created via API."""
         data = self.create()
 
         pk = data[self.pk_field]
         obj = self.model.objects.filter(pk=pk).first()
         self.assertIsNotNone(obj)
-        assert obj is not None
-        return obj
 
 
 class DeleteViewSetTestsMixin(APIHelpersMixin):
