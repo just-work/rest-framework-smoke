@@ -204,7 +204,9 @@ class APIHelpersMixin(MixinTarget):
                 raise ValueError(format)
 
         r = cast(TestResponse, self.client.generic(
-            method, url, data=body, content_type=content_type, **headers))
+            method, url,
+            data=cast(str, body),  # DRF-stubs
+            content_type=content_type, **headers))
         self.assertEqual(r.status_code, status, self.maybe_json(r))
         return r
 
