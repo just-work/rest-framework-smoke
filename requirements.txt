@@ -1,4 +1,4 @@
-Django==4.0.6
+Django==4.1
 djangorestframework==3.13.1
 jsonschema==4.9.0
 django-testing-utils==0.4.0
